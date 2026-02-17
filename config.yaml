@@ -1,0 +1,286 @@
+# yaml-language-server: $schema=./node_modules/envio/evm.schema.json
+name: Velodrome_v2
+description: Multi-chain indexer for Velodrome V2 on Optimism and Aerodrome on Base
+unordered_multichain_mode: true
+rollback_on_reorg: true
+raw_events: false
+event_decoder: hypersync-client
+preload_handlers: true
+field_selection:
+  transaction_fields:
+    - "hash"
+contracts:
+  - name: FactoryRegistry
+    abi_file_path: abis/FactoryRegistry.json
+    handler: src/EventHandlers/FactoryRegistry.ts
+    events:
+      - event: Approve
+      - event: Unapprove
+  - name: PoolFactory
+    abi_file_path: abis/PoolFactory.json
+    handler: src/EventHandlers/PoolFactory.ts
+    events:
+      - event: PoolCreated
+      - event: SetCustomFee
+  - name: RootCLPoolFactory
+    abi_file_path: abis/RootCLPoolFactory.json
+    handler: src/EventHandlers/RootCLPoolFactory.ts
+    events:
+      - event: RootPoolCreated
+  - name: CLFactory
+    abi_file_path: abis/CLFactory.json
+    handler: src/EventHandlers/CLFactory.ts
+    events:
+      - event: PoolCreated
+      - event: TickSpacingEnabled
+  - name: CLPool
+    abi_file_path: abis/CLPool.json
+    handler: src/EventHandlers/CLPool.ts
+    events:
+      - event: Burn
+      - event: Collect
+      - event: CollectFees
+      - event: Flash
+      - event: IncreaseObservationCardinalityNext
+      - event: Mint
+      - event: SetFeeProtocol
+      - event: Swap
+  - name: NFPM
+    abi_file_path: abis/NFPM.json
+    handler: src/EventHandlers/NFPM/NFPM.ts
+    events:
+      - event: Transfer
+      - event: IncreaseLiquidity
+      - event: DecreaseLiquidity
+  - name: VeNFT
+    abi_file_path: abis/VeNFT.json
+    handler: src/EventHandlers/VeNFT/VeNFT.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: Transfer
+  - name: Pool
+    abi_file_path: abis/Pool.json
+    handler: src/EventHandlers/Pool.ts
+    events:
+      - event: Mint
+      - event: Burn
+      - event: Fees
+      - event: Claim
+      - event: Swap
+      - event: Sync
+      - event: Transfer
+  - name: Voter
+    abi_file_path: abis/VoterV2.json
+    handler: src/EventHandlers/Voter/Voter.ts
+    events:
+      - event: Voted
+      - event: Abstained
+      - event: DistributeReward
+      - event: GaugeCreated
+      - event: GaugeKilled
+      - event: GaugeRevived
+      - event: WhitelistToken
+  - name: SuperchainLeafVoter
+    abi_file_path: abis/SuperchainLeafVoter.json
+    handler: src/EventHandlers/Voter/SuperchainLeafVoter.ts
+    events:
+      - event: GaugeCreated
+      - event: GaugeKilled
+      - event: GaugeRevived
+      - event: WhitelistToken
+  - name: FeesVotingReward
+    abi_file_path: abis/FeesVotingReward.json
+    handler: src/EventHandlers/VotingReward/FeesVotingReward.ts
+    events:
+      - event: ClaimRewards
+  - name: BribesVotingReward
+    abi_file_path: abis/BribesVotingReward.json
+    handler: src/EventHandlers/VotingReward/BribesVotingReward.ts
+    events:
+      - event: ClaimRewards
+  - name: SuperchainIncentiveVotingReward
+    abi_file_path: abis/SuperchainIncentiveVotingReward.json
+    handler: src/EventHandlers/VotingReward/SuperchainIncentiveVotingReward.ts
+    events:
+      - event: ClaimRewards
+  - name: NewCLGaugeFactory
+    abi_file_path: abis/NewCLGaugeFactory.json
+    handler: src/EventHandlers/CLGaugeFactory/NewCLGaugeFactory.ts
+    events:
+      - event: SetDefaultCap
+      - event: SetEmissionCap
+  - name: CLGauge
+    abi_file_path: abis/CLGauge.json
+    handler: src/EventHandlers/Gauges/CLGauge.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: ClaimRewards
+  - name: Gauge
+    abi_file_path: abis/Gauge.json
+    handler: src/EventHandlers/Gauges/Gauge.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: ClaimRewards
+  - name: ALMDeployFactoryV2
+    abi_file_path: abis/ALM/DeployFactoryV2.json
+    handler: src/EventHandlers/ALM/DeployFactoryV2.ts
+    events:
+      - event: StrategyCreated
+  - name: ALMDeployFactoryV1
+    abi_file_path: abis/ALM/DeployFactoryV1.json
+    handler: src/EventHandlers/ALM/DeployFactoryV1.ts
+    events:
+      - event: StrategyCreated
+  - name: ALMCore
+    abi_file_path: abis/ALM/Core.json
+    handler: src/EventHandlers/ALM/Core.ts
+    events:
+      - event: Rebalance
+  - name: ALMLPWrapperV2
+    abi_file_path: abis/ALM/LPWrapperV2.json
+    handler: src/EventHandlers/ALM/LPWrapperV2.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: Transfer
+      - event: TotalSupplyLimitUpdated
+  - name: ALMLPWrapperV1
+    abi_file_path: abis/ALM/LPWrapperV1.json
+    handler: src/EventHandlers/ALM/LPWrapperV1.ts
+    events:
+      - event: Deposit
+      - event: Withdraw
+      - event: Transfer
+  - name: DynamicSwapFeeModule
+    abi_file_path: abis/DynamicSwapFeeModule.json
+    handler: src/EventHandlers/SwapFeeModule/DynamicSwapFeeModule.ts
+    events:
+      - event: CustomFeeSet
+      - event: SecondsAgoSet
+      - event: ScalingFactorSet
+      - event: FeeCapSet
+  - name: CustomSwapFeeModule
+    abi_file_path: abis/CustomSwapFeeModule.json
+    handler: src/EventHandlers/SwapFeeModule/CustomSwapFeeModule.ts
+    events:
+      - event: SetCustomFee
+  - name: CLPoolLauncher
+    handler: src/EventHandlers/PoolLauncher/CLPoolLauncher.ts
+    abi_file_path: abis/CLPoolLauncher.json
+    events:
+      - event: Launch
+      - event: Migrate
+      - event: EmergingFlagged
+      - event: EmergingUnflagged
+      - event: PairableTokenAdded
+      - event: PairableTokenRemoved
+      - event: NewPoolLauncherSet
+      - event: CreationTimestampSet
+  - name: V2PoolLauncher
+    handler: src/EventHandlers/PoolLauncher/V2PoolLauncher.ts
+    abi_file_path: abis/V2PoolLauncher.json
+    events:
+      - event: Launch
+      - event: Migrate
+      - event: EmergingFlagged
+      - event: EmergingUnflagged
+      - event: PairableTokenAdded
+      - event: PairableTokenRemoved
+      - event: NewPoolLauncherSet
+      - event: CreationTimestampSet
+  - name: VelodromeUniversalRouter
+    handler: src/EventHandlers/SuperswapsHyperlane/VelodromeUniversalRouter.ts
+    abi_file_path: abis/VelodromeUniversalRouter.json
+    events:
+      - event: UniversalRouterBridge
+      - event: CrossChainSwap
+  - name: Mailbox
+    handler: src/EventHandlers/SuperswapsHyperlane/Mailbox.ts
+    abi_file_path: abis/Mailbox.json
+    events:
+      - event: DispatchId
+      - event: ProcessId
+networks:
+  - id: 143 # Monad Mainnet
+    start_block: 54700801
+    hypersync_config:
+      url: https://monad.hypersync.xyz
+    contracts:
+      - name: FactoryRegistry
+        address:
+          - 0x3c77153bd8FA49EE7D342AdAe99A756a0B8ddbAf
+      - name: PoolFactory
+        address:
+          - 0x08A1739A3Fdc826eBC57EbD25718A25Cb445f2a8
+      - name: RootCLPoolFactory
+        address: []
+      - name: CLFactory
+        address: []
+      - name: CLPool
+        address: []
+      - name: NFPM
+        address: []
+      - name: VeNFT
+        address:
+          - 0xEAF00522B1762384ba5Ac8179BB4cce146102c7C
+      - name: Pool
+        address:
+          - 0xe870adE203F4efEC8c37D4ebd95fE3cceFD0e0d5
+          - 0xf7f9006427800b50ce6179352d09b8C506130370
+          - 0x13F0643791cC98987A1A75eAbE0AB4321E88E9FB
+          - 0xA1F5848615d5d8644f2A5ab03b602C2724F01B8B
+          - 0xb8f6faf95bA3968ad120Dc569A648665BC67B977
+          - 0xF7794079bA462dEc4a6fb53FB09F78806A1cA914
+          - 0x633B602c07ff99D0990e1c176e9d3926De637A8B
+          - 0xf20aDC7300e86e0716989164766Fd5dA3B7d80dE
+      - name: Voter
+        address:
+          - 0x1D8E864c4cA5D24EcadfC131918B0A6F26cb14cD
+      - name: SuperchainLeafVoter
+        address: []
+      - name: FeesVotingReward
+        address: []
+      - name: BribesVotingReward
+        address: []
+      - name: SuperchainIncentiveVotingReward
+        address: []
+      - name: NewCLGaugeFactory
+        address: []
+      - name: CLGauge
+        address: []
+      - name: Gauge
+        address:
+          - 0xf8b8B6915D9B0F347E6924E75B85634e75f61408
+          - 0x9bcfAAcbB0819c59a66D5a933c7c406DF40668Ad
+          - 0xeCbbA2F2013731032fEC8999D2ABeA686E57Ee37
+          - 0xB595C5f5718A91Aa826659B6f557089A5577aded
+          - 0x0411a55e0d5fcE531070940f93722a8723F9A497
+          - 0x3A431da4377fAc30c707457Ce09D793395E7Bea8
+          - 0x036f4bea853C47083cCDBD35fdC39B5010B19a5A
+          - 0xC948DAEFC52e1311A4dCAA186fC18745e7480cB5
+      - name: ALMDeployFactoryV2
+        address: []
+      - name: ALMDeployFactoryV1
+        address: []
+      - name: ALMCore
+        address: []
+      - name: ALMLPWrapperV2
+        address: []
+      - name: ALMLPWrapperV1
+        address: []
+      - name: DynamicSwapFeeModule
+        address: []
+      - name: CustomSwapFeeModule
+        address: []
+      - name: CLPoolLauncher
+        address: []
+      - name: V2PoolLauncher
+        address: []
+      - name: VelodromeUniversalRouter
+        address:
+          - 0xE6fF0a5231D487F073889bcf699dA90423ECA6FB
+      - name: Mailbox
+        address: []

@@ -1,0 +1,504 @@
+type LiquidityPoolAggregator {
+  id: ID! # {chainId}-{poolAddress}
+  chainId: Int!
+  poolAddress: String! # address of the pool
+  name: String! # name of the pool
+  token0_id: String! # token0 id
+  token1_id: String! # token1 id
+  token0_address: String! # token0 address
+  token1_address: String! # token1 address
+  isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
+  isCL: Boolean! # whether the pool is a CL pool
+  tickSpacing: BigInt! @config(precision: 24) # Tick spacing of the pool; 0 for non-CL pools
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLPTokenSupply: BigInt! @config(precision: 76) # total supply of LP tokens (tracked from Transfer events)
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFeesGenerated0: BigInt! @config(precision: 76) # total swap fees generated of token0 in token units
+  totalFeesGenerated1: BigInt! @config(precision: 76) # total swap fees generated of token1 in token units
+  totalFeesGeneratedUSD: BigInt! @config(precision: 76) # total swap fees of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalUnstakedFeesCollected0: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in token0 units
+  totalUnstakedFeesCollected1: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in token1 units
+  totalStakedFeesCollected0: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in token0 units
+  totalStakedFeesCollected1: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in token1 units
+  totalUnstakedFeesCollectedUSD: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in USD
+  totalStakedFeesCollectedUSD: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalVotesDeposited: BigInt! @config(precision: 76) # total votes deposited in veToken units
+  totalVotesDepositedUSD: BigInt! @config(precision: 76) # total votes deposited in USD
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+  totalBribesUSD: BigInt! @config(precision: 76) # total bribes for the pool in USD
+
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
+  lastSnapshotTimestamp: Timestamp! # timestamp of last snapshot
+
+  # CL Pool specific fields
+  feeProtocol0: BigInt @config(precision: 76) # current fee protocol for token0
+  feeProtocol1: BigInt @config(precision: 76) # current fee protocol for token1
+  observationCardinalityNext: BigInt @config(precision: 76) # oracle observation cardinality
+  sqrtPriceX96: BigInt @config(precision: 76) # current sqrt price (Q96 fixed point) - updated from Swap/Initialize events
+  tick: BigInt @config(precision: 24) # current tick - updated from Swap/Initialize events
+  totalFlashLoanFees0: BigInt @config(precision: 76) # total flash loan fees collected in token0
+  totalFlashLoanFees1: BigInt @config(precision: 76) # total flash loan fees collected in token1
+  totalFlashLoanFeesUSD: BigInt @config(precision: 76) # total flash loan fees collected in USD
+  totalFlashLoanVolumeUSD: BigInt @config(precision: 76) # total flash loan volume in USD
+  numberOfFlashLoans: BigInt @config(precision: 76) # total number of flash loans
+
+  # Gauge fields
+  gaugeIsAlive: Boolean! # whether the gauge is alive
+  gaugeAddress: String @index # address of the gauge for this pool
+  gaugeEmissionsCap: BigInt @config(precision: 76) # Emissions cap for gauge. If not specified in an SetEmissionsCap event, set to defaultEmissionsCap as per CLGaugeConfig. If CLGaugeConfig doesn't exist, there's no emissions cap
+  numberOfGaugeDeposits: BigInt! @config(precision: 76) # number of gauge deposits (staking)
+  numberOfGaugeWithdrawals: BigInt! @config(precision: 76) # number of gauge withdrawals (unstaking)
+  numberOfGaugeRewardClaims: BigInt! @config(precision: 76) # number of gauge reward claims
+  totalGaugeRewardsClaimedUSD: BigInt! @config(precision: 76) # total gauge rewards claimed in USD
+  totalGaugeRewardsClaimed: BigInt! @config(precision: 76) # total gauge rewards claimed in token units
+  currentLiquidityStaked: BigInt! @config(precision: 76) # current liquidity staked in gauge in token units
+  currentLiquidityStakedUSD: BigInt! @config(precision: 76) # current liquidity staked in gauge in USD
+
+  # Voting Reward fields
+  bribeVotingRewardAddress: String @index # address of the bribe voting reward contract for this pool
+  totalBribeClaimed: BigInt! @config(precision: 76) # total bribes claimed by users in token units
+  totalBribeClaimedUSD: BigInt! @config(precision: 76) # total bribes claimed by users in USD
+  feeVotingRewardAddress: String @index # address of the fee voting reward contract for this pool
+  totalFeeRewardClaimed: BigInt! @config(precision: 76) # total fee rewards claimed by users in token units
+  totalFeeRewardClaimedUSD: BigInt! @config(precision: 76) # total fee rewards claimed by users in USD
+  veNFTamountStaked: BigInt! @config(precision: 76) # total amount of veNFT staked for this pool
+
+  # Dynamic Fee fields
+  baseFee: BigInt! @config(precision: 24) # Current base fee set for pool
+  feeCap: BigInt @config(precision: 76) # Current fee cap for pool
+  scalingFactor: BigInt @config(precision: 76) # Current scaling factor for pool
+  currentFee: BigInt! @config(precision: 76) # Current fee for pool (base + dynamic)
+
+  # Pool Launcher relationship
+  poolLauncherPoolId: String # ID of the PoolLauncherPool entity if this pool was launched via Pool Launcher
+
+  # RootPool matching - only relevant for non-OP and non-Base pools
+  # For each superChain pool there's a unique rootPool
+  # This is because the rootPool is created through a hash of these 4 quantities and they are a unique combination (enforced by smart contract)
+  rootPoolMatchingHash: String! @index # {chainId}_{token0_address}_{token1_address}_{tickSpacing}
+}
+
+# Snapshot of the LiquidityPool entity
+type LiquidityPoolAggregatorSnapshot {
+  id: ID! # {chainId}-{poolAddress}-{snapshotTime}
+  chainId: Int! # chain id
+  name: String! # name of the pool
+  pool: String! # pool address
+  token0_id: String! # token0 id
+  token1_id: String! # token1 id
+  token0_address: String! # token0 address
+  token1_address: String! # token1 address
+  isStable: Boolean! # whether the pool is a stable AMM or a volatile AMM
+  isCL: Boolean!
+  reserve0: BigInt! @config(precision: 76) # reserve of token0 in token units
+  reserve1: BigInt! @config(precision: 76) # reserve of token1 in token units
+  totalLPTokenSupply: BigInt! @config(precision: 76) # total supply of LP tokens (tracked from Transfer events)
+  totalLiquidityUSD: BigInt! @config(precision: 76) # total liquidity of the swap pool in USD
+  totalVolume0: BigInt! @config(precision: 76) # total swap volume of token0 in token units
+  totalVolume1: BigInt! @config(precision: 76) # total swap volume of token1 in token units
+  totalVolumeUSD: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalFeesGenerated0: BigInt! @config(precision: 76) # total swap fees generated of token0 in token units
+  totalFeesGenerated1: BigInt! @config(precision: 76) # total swap fees generated of token1 in token units
+  totalFeesGeneratedUSD: BigInt! @config(precision: 76) # total swap fees of the pool in USD
+  totalVolumeUSDWhitelisted: BigInt! @config(precision: 76) # total swap volume of the pool in USD
+  totalUnstakedFeesCollected0: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in token0 units
+  totalUnstakedFeesCollected1: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in token1 units
+  totalStakedFeesCollected0: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in token0 units
+  totalStakedFeesCollected1: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in token1 units
+  totalUnstakedFeesCollectedUSD: BigInt! @config(precision: 76) # total fees collected from unstaked LPs (Collect events) in USD
+  totalStakedFeesCollectedUSD: BigInt! @config(precision: 76) # total fees collected from staked LPs (CollectFees events) in USD
+  totalFeesUSDWhitelisted: BigInt! @config(precision: 76) # total fees collected in USD
+  numberOfSwaps: BigInt! @config(precision: 76) # total number of swaps in the pool
+  token0Price: BigInt! @config(precision: 76) # price of token0 relative to token1
+  token1Price: BigInt! @config(precision: 76) # price of token1 relative to token0
+  totalVotesDeposited: BigInt! @config(precision: 76) # total votes deposited in veToken units
+  totalVotesDepositedUSD: BigInt! @config(precision: 76) # total votes deposited in USD
+  totalEmissions: BigInt! @config(precision: 76) # total emissions for the pool in reward token units (VELO form Optimism and AERO for Base)
+  totalEmissionsUSD: BigInt! @config(precision: 76) # total emissions for the pool in USD
+
+  gaugeIsAlive: Boolean! # whether the gauge is alive
+  gaugeAddress: String @index # address of the gauge for this pool
+  currentLiquidityStaked: BigInt! @config(precision: 76) # current liquidity staked in gauge in token units
+  currentLiquidityStakedUSD: BigInt! @config(precision: 76) # current liquidity staked in gauge in USD
+  timestamp: Timestamp! # timestamp of last update
+
+  # CL Pool specific fields
+  feeProtocol0: BigInt @config(precision: 76) # current fee protocol for token0
+  feeProtocol1: BigInt @config(precision: 76) # current fee protocol for token1
+  observationCardinalityNext: BigInt @config(precision: 76) # oracle observation cardinality
+  sqrtPriceX96: BigInt @config(precision: 76) # current sqrt price (Q96 fixed point) - updated from Swap/Initialize events
+  tick: BigInt @config(precision: 24) # current tick - updated from Swap/Initialize events
+  totalFlashLoanFees0: BigInt @config(precision: 76) # total flash loan fees collected in token0
+  totalFlashLoanFees1: BigInt @config(precision: 76) # total flash loan fees collected in token1
+  totalFlashLoanFeesUSD: BigInt @config(precision: 76) # total flash loan fees collected in USD
+  totalFlashLoanVolumeUSD: BigInt @config(precision: 76) # total flash loan volume in USD
+  numberOfFlashLoans: BigInt @config(precision: 76) # total number of flash loans
+
+  # Voting Reward fields
+  bribeVotingRewardAddress: String @index # address of the bribe voting reward contract for this pool
+  totalBribeClaimed: BigInt! @config(precision: 76) # total bribes claimed by users in token units
+  totalBribeClaimedUSD: BigInt! @config(precision: 76) # total bribes claimed by users in USD
+  feeVotingRewardAddress: String @index # address of the fee voting reward contract for this pool
+  totalFeeRewardClaimed: BigInt! @config(precision: 76) # total fee rewards claimed by users in token units
+  totalFeeRewardClaimedUSD: BigInt! @config(precision: 76) # total fee rewards claimed by users in USD
+  veNFTamountStaked: BigInt! @config(precision: 76) # total amount of veNFT staked for this pool
+
+  # Dynamic Fee fields
+  baseFee: BigInt! @config(precision: 24) # Current base fee set for pool
+  feeCap: BigInt @config(precision: 76) # Current fee cap for pool
+  scalingFactor: BigInt @config(precision: 76) # Current scaling factor for pool
+  currentFee: BigInt! @config(precision: 76) # Current fee for pool (base + dynamic)
+}
+
+# Entity for tracking user activity and positions in specific pools
+type UserStatsPerPool {
+  id: ID! # userAddress_poolAddress_chainId
+  userAddress: String! @index
+  poolAddress: String! @index
+  chainId: Int!
+
+  # Liquidity metrics
+  currentLiquidityUSD: BigInt! @config(precision: 76) # current net liquidity position in USD
+  lpBalance: BigInt! @config(precision: 76) # user's LP token balance (tracked from Transfer events)
+  totalLiquidityAddedUSD: BigInt! @config(precision: 76) # total liquidity added in USD
+  totalLiquidityAddedToken0: BigInt! @config(precision: 76) # total liquidity added in token0 (cumulative)
+  totalLiquidityAddedToken1: BigInt! @config(precision: 76) # total liquidity added in token1 (cumulative)
+  totalLiquidityRemovedUSD: BigInt! @config(precision: 76) # total liquidity removed in USD
+  totalLiquidityRemovedToken0: BigInt! @config(precision: 76) # total liquidity removed in token0 (cumulative)
+  totalLiquidityRemovedToken1: BigInt! @config(precision: 76) # total liquidity removed in token1 (cumulative)
+
+  # Fee metrics
+  totalFeesContributedUSD: BigInt! @config(precision: 76) # total fees contributed in USD (from swaps made by the user - essentially fees paid by the user in swaps)
+  totalFeesContributed0: BigInt! @config(precision: 76) # total fees contributed in token0 (from swaps made by the user - essentially fees paid by the user in swaps)
+  totalFeesContributed1: BigInt! @config(precision: 76) # total fees contributed in token1 (from swaps made by the user - essentially fees paid by the user in swaps)
+
+  # Swap metrics
+  numberOfSwaps: BigInt! @config(precision: 76) # number of swaps in this pool
+  totalSwapVolumeAmount0: BigInt! @config(precision: 76) # swap volume denominated in token0 in this pool
+  totalSwapVolumeAmount1: BigInt! @config(precision: 76) # swap volume denominated in token1 in this pool
+  totalSwapVolumeUSD: BigInt! @config(precision: 76) # swap volume in USD in this pool
+
+  # Flash swap metrics
+  numberOfFlashLoans: BigInt! @config(precision: 76) # number of flash loan swaps in this pool
+  totalFlashLoanVolumeUSD: BigInt! @config(precision: 76) # flash loan swap volume in USD in this pool
+
+  # Gauge metrics
+  numberOfGaugeDeposits: BigInt! @config(precision: 76) # number of gauge deposits (staking)
+  numberOfGaugeWithdrawals: BigInt! @config(precision: 76) # number of gauge withdrawals (unstaking)
+  numberOfGaugeRewardClaims: BigInt! @config(precision: 76) # number of gauge reward claims
+  totalGaugeRewardsClaimedUSD: BigInt! @config(precision: 76) # total gauge rewards claimed in USD
+  totalGaugeRewardsClaimed: BigInt! @config(precision: 76) # total gauge rewards claimed in token units
+  currentLiquidityStaked: BigInt! @config(precision: 76) # current liquidity staked in gauge in token units
+  currentLiquidityStakedUSD: BigInt! @config(precision: 76) # current liquidity staked in gauge in USD
+
+  # Voting metrics
+  totalBribeClaimed: BigInt! @config(precision: 76) # total amount of bribe rewards claimed by this user for this pool
+  totalBribeClaimedUSD: BigInt! @config(precision: 76) # total USD value of bribe rewards claimed by this user for this pool
+  totalFeeRewardClaimed: BigInt! @config(precision: 76) # total amount of fee rewards claimed by this user for this pool
+  totalFeeRewardClaimedUSD: BigInt! @config(precision: 76) # total USD value of fee rewards claimed by this user for this pool
+  veNFTamountStaked: BigInt! @config(precision: 76) # amount of veNFT staked by this user for this pool
+
+  # ALM metrics
+  almAddress: String! # Address of ALM LP Wrapper (if the user interacts with it; otherwise defaults to "")
+  almLpAmount: BigInt! @config(precision: 76) # Number of LP tokens
+  lastAlmActivityTimestamp: Timestamp! # last ALM related activity that changed ALM related fields on user entity
+
+  # Timestamps
+  firstActivityTimestamp: Timestamp! # first activity in this pool
+  lastActivityTimestamp: Timestamp! # last activity in this pool
+}
+
+# Entity that tracks the latest state of the token entity
+# By nature this entity saves the latest state of the token, and its state at different times should be attained from the snapshot entities
+type Token {
+  id: ID! # token address
+  address: String! @index # token address
+  symbol: String! # token symbol
+  name: String! # token name
+  chainId: Int! @index
+  decimals: BigInt! @config(precision: 76) # number of decimals
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
+  lastUpdatedTimestamp: Timestamp! # timestamp of last update
+  isWhitelisted: Boolean! # whether the token is whitelisted
+}
+
+# Snapshot of the Token entity
+type TokenPriceSnapshot {
+  id: ID! # Unique identifier for the record, could be a combination of token address and chain ID
+  address: String! @index # Address of the token
+  pricePerUSDNew: BigInt! @config(precision: 76) # price of token per USD
+  chainId: Int!
+  isWhitelisted: Boolean! # whether the token is whitelisted
+  lastUpdatedTimestamp: Timestamp! @index # Timestamp of the last update
+}
+
+# Tracks relevant data for each NFT minted: each NFT represents a concentrated position in a pool
+# Note: amount0, amount1, amountUSD are derived fields computed on-demand from liquidity + sqrtPriceX96 + ticks
+type NonFungiblePosition {
+  id: ID! # Unique identifier: `${chainId}_${poolAddress}_${tokenId}` (stable, set when tokenId is known)
+  chainId: Int! # Chain ID where the NFT exists
+  tokenId: BigInt! @index # Token ID of the NFT (from Transfer event)
+  owner: String! @index # Checksum address of the current owner (from Transfer event)
+  pool: String! @index # Address of the CL pool this position belongs to
+  tickUpper: BigInt! @config(precision: 24) # Upper tick of the position range
+  tickLower: BigInt! @config(precision: 24) # Lower tick of the position range
+  token0: String! # Address of token0 in the position
+  token1: String! # Address of token1 in the position
+  liquidity: BigInt! @config(precision: 76) # Current liquidity value of the position
+  mintTransactionHash: String! @index # Transaction hash of the NFT mint transaction
+  mintLogIndex: Int! # Log index of CLPool.Mint event (for placeholder matching)
+  lastUpdatedTimestamp: Timestamp! # Timestamp of last update
+}
+
+type VeNFTState {
+  id: ID!
+  chainId: Int!
+  tokenId: BigInt! @config(precision: 76)
+  owner: String!
+  locktime: BigInt! @config(precision: 76)
+  lastUpdatedTimestamp: Timestamp!
+  totalValueLocked: BigInt! @config(precision: 76)
+  isAlive: Boolean!
+  votesPerPool: [VeNFTPoolVote!]! @derivedFrom(field: "veNFTState")
+}
+
+type VeNFTPoolVote {
+  id: ID!
+  poolAddress: String! @index
+  veNFTamountStaked: BigInt! @config(precision: 76)
+  veNFTState: VeNFTState! @index
+  lastUpdatedTimestamp: Timestamp!
+}
+
+# ALM LP Wrapper entity
+# Tracks both the LP wrapper state (aggregated deposits/withdrawals) and the strategy position state
+# Relationship: 1 LP wrapper per pool, 1 strategy per LP wrapper, 1 tokenId per strategy, 1 AMM position per tokenId (1:1:1:1 relationship)
+# Therefore this single entity tracks everything for the wrapper and its strategy
+type ALM_LP_Wrapper {
+  id: ID! # Unique identifier: {ALM_LP_Wrapper_address}_{chainId}
+  chainId: Int! # The blockchain network ID where this wrapper exists
+  pool: String! @index # Address of the pool this ALM wrapper is associated with
+  token0: String! # Address of token 0
+  token1: String! # Address of token 1
+
+  # Wrapper-level state
+  lpAmount: BigInt! @config(precision: 76) # Total number of LP tokens wrapped (aggregated across all users)
+  lastUpdatedTimestamp: Timestamp! # Timestamp of the last update to this entity
+
+  # Strategy/Position-level state (updated by StrategyCreated and Rebalance events)
+  # Since there's exactly 1 strategy per wrapper, we store it here
+  tokenId: BigInt! @config(precision: 24) @index # Equal to tokenId. Unique identifier for the strategy/position
+  tickLower: BigInt! @config(precision: 24) # Lower tick bound of the position's price range (in tick units)
+  tickUpper: BigInt! @config(precision: 24) # Upper tick bound of the position's price range (in tick units)
+  property: BigInt! @config(precision: 24) # Pool property parameter from the AMM position struct
+  liquidity: BigInt! @config(precision: 76) # Amount of liquidity currently in the AMM position
+
+  strategyType: BigInt! @config(precision: 24) # Type/kind of ALM strategy being used (defines the strategy behavior)
+  tickNeighborhood: BigInt! @config(precision: 24) # Tick neighborhood parameter for the strategy (defines rebalancing range around current price)
+  tickSpacing: BigInt! @config(precision: 24) # Tick spacing for the strategy (minimum tick movement allowed)
+  positionWidth: BigInt! @config(precision: 24) # Width parameter for the strategy (defines the position size in ticks)
+  maxLiquidityRatioDeviationX96: BigInt! @config(precision: 76) # Maximum allowed liquidity ratio deviation in X96 fixed-point format (controls rebalancing thresholds)
+  creationTimestamp: Timestamp! # Timestamp when this strategy was created (from StrategyCreated event)
+  strategyTransactionHash: String! @index # Transaction hash of the StrategyCreated event
+}
+
+type FactoryRegistryConfig {
+  id: ID! # {event.srcAddress}_${event.chainId}
+  currentActivePoolFactory: String! # Address of the currently active pool factory (creates vAMM/sAMM or CL pools)
+  currentActiveVotingRewardsFactory: String! # Address of the currently active voting rewards factory (creates fee and bribe voting reward contracts)
+  currentActiveGaugeFactory: String! # Address of the currently active gauge factory (creates gauge contracts for emissions)
+  lastUpdatedTimestamp: Timestamp! # Timestamp when the factory registry configuration was last updated
+}
+
+type DynamicFeeGlobalConfig {
+  id: ID! # address of DynamicSwapFeeModule
+  chainId: Int! @index
+  secondsAgo: BigInt @config(precision: 32) # The amount of time used to calculate price change
+}
+
+# One per underlying pool (per chain) launched or migrated via Pool Launcher
+type PoolLauncherPool {
+  id: ID! # `${chainId}-${underlyingPool}`
+  chainId: Int!
+  underlyingPool: Bytes! # pool address
+  launcher: String! # PoolLauncher contract address (the one that created or currently manages)
+  creator: String! # msg.sender at Launch
+  poolLauncherToken: Bytes! # the "project" token
+  pairToken: Bytes! # whitelisted pair (e.g., WETH, USDC)
+  createdAt: Timestamp!
+  isEmerging: Boolean! # current flag
+  lastFlagUpdateAt: Timestamp! # timestamp of last flag change
+
+  # Migration lineage
+  migratedFrom: String! # previous underlying pool (if this was target in Migrate)
+  migratedTo: String! # next underlying pool (if later migrated away)
+  oldLocker: String! # source locker in migration
+  newLocker: String! # target locker from migration
+  lastMigratedAt: Timestamp!
+
+  poolStats: [LiquidityPoolAggregator!]!
+    @derivedFrom(field: "poolLauncherPoolId")
+}
+
+type PoolLauncherConfig {
+  id: ID!
+  version: String! # "CL" for concentrated liquidity, "V2" for V2 pools
+  pairableTokens: [String!]
+}
+
+# A superswap is characterized by 3 steps:
+# 1. Original asset is swapped for oUSDT on the source chain.
+# 2. The oUSDT is then bridged through Hyperlane to the destination chain.
+# 3. Bridged oUSDT is then swapped into the preferred asset on the destination chain.
+type SuperSwap {
+  id: ID! # {transactionHash}_{originChainId}_{destinationChainId}_{oUSDTamount}_{messageId}_{sourceChainToken}_{sourceChainTokenAmountSwapped}_{destinationChainToken}_{destinationChainTokenAmountSwapped}
+  originChainId: BigInt! @config(precision: 24) # Chain ID where the swap originated
+  destinationChainId: BigInt! @config(precision: 24) # Chain ID of the swap target/recipient
+  sender: String! # Original sender address initiating the swap
+  recipient: String! # The recipient address on the destination chain
+  oUSDTamount: BigInt! @config(precision: 76) # Amount of oUSDT swapped (already normalized to token decimals)
+  sourceChainToken: String! # Token that gets swapped by oUSDT on source chain, i.e., Token A -> oUSDT on source chain
+  sourceChainTokenAmountSwapped: BigInt! @config(precision: 76) # Amount of sourceChainToken that was swapped for oUSDT on the source chain
+  destinationChainToken: String! # Token that gets swapped by oUSDT on destination chain, i.e., oUSDT -> Token B on destination chain
+  destinationChainTokenAmountSwapped: BigInt! @config(precision: 76) # Amount of destinationChainToken that was received from swapping oUSDT on the destination chain
+  timestamp: Timestamp! # Block timestamp of the swap event
+}
+
+type OUSDTBridgedTransaction {
+  id: ID! # Transaction hash
+  transactionHash: String! @index # Transaction hash
+  originChainId: BigInt! @config(precision: 24) # Chain ID where the bridge transaction originated
+  destinationChainId: BigInt! @config(precision: 24) # Chain ID where the bridge transaction is destined
+  sender: String! # Address that initiated the bridge transaction
+  recipient: String! # Address that will receive the bridged tokens
+  amount: BigInt! @config(precision: 76) # Amount of oUSDT tokens being bridged
+}
+
+# Registering each event related from/to oUSDT. Needed for filtering and eventual registration of source/destination token
+# and corresponding amounts during superswaps execution
+type OUSDTSwaps {
+  id: ID! # {transactionHash}_{chainId}_{tokenInPool}_{amountIn}_{tokenOutPool}_{amountOut}
+  transactionHash: String! @index # Transaction hash of the swap transaction
+  tokenInPool: String! # Token that goes into the pool after swap
+  tokenOutPool: String! # Token that goes out of the pool after swap
+  amountIn: BigInt! @config(precision: 76) # Amount of tokenInPool being swapped into the pool
+  amountOut: BigInt! @config(precision: 76) # Amount of tokenOutPool being swapped out of the pool
+}
+
+# Stores relevant CLGauge config data such as default emissions cap and emissions cap per gauge
+# Specially relevant after the deployment of the new CLGaugeFactory that features emissions cap per gauge
+# Gauges that do no that associated SetEmissionCap events will have their emissions cap defaulted to defaultEmissionsCap
+type CLGaugeConfig {
+  id: ID! # Contract address
+  defaultEmissionsCap: BigInt! @config(precision: 24)
+  lastUpdatedTimestamp: Timestamp! # Timestamp of the last CLGaugeConfig update
+}
+
+type DispatchId_event {
+  id: ID! # Unique identifier: {transactionHash}_{chainId}_{messageId}
+  chainId: Int! # Chain ID where the message was dispatched (origin chain)
+  transactionHash: String! @index # Transaction hash of the dispatch transaction
+  messageId: String! @index # Unique message ID identifying the cross-chain message in Hyperlane
+}
+
+type ProcessId_event {
+  id: ID! # Unique identifier: {transactionHash}_{chainId}_{messageId}
+  chainId: Int! # Chain ID where the message was processed (destination chain)
+  transactionHash: String! @index # Transaction hash of the process transaction
+  messageId: String! @index # Unique message ID identifying the cross-chain message in Hyperlane (matches DispatchId messageId)
+}
+
+type ALM_TotalSupplyLimitUpdated_event {
+  id: ID! # {LPWrapper_address}_{chainId}
+  lpWrapperAddress: String! # LP Wrapper associated to the event
+  currentTotalSupplyLPTokens: BigInt! @config(precision: 76) # Current supply of LP tokens for the pool, emitted by the event
+  transactionHash: String! # Transaction hash of the event
+}
+
+type RootPool_LeafPool {
+  id: ID! #{RootPool}_{OptimismChainId}_{LeafPool}_{LeafChainId}
+  rootChainId: Int! # Optimism chain ID
+  rootPoolAddress: String! @index # Placeholder contract that isn't a real pool (i.e., doesn't allow for LP, swap, etc). Mainly just for registring purposes
+  leafChainId: Int! # Chain ID where the actual real pool (i.e. pool where it is possible to LP, swap, etc) is deployed
+  leafPoolAddress: String! # Actual real pool that is deployed on leaf chain
+}
+
+# Should be updated by TickSpacingEnabled event emitted by CLFactory contract
+# It allows to initialise currentFee field for all CLPools
+# CLPool fees can then be modified by either CustomSwapFeeModule or DynamicSwapFeeModule
+# The same tick spacing can be enabled multiple times (to update the fee), so this entity is updated, not created new
+type FeeToTickSpacingMapping {
+  id: ID! # `${chainId}_${tickSpacing}`
+  chainId: Int! @index
+  tickSpacing: BigInt! @config(precision: 24) @index # Tick spacing value
+  fee: BigInt! @config(precision: 24) # Fee value for this tick spacing
+  lastUpdatedTimestamp: Timestamp! # Timestamp when this mapping was last updated
+}
+
+# Temporary entity for storing CLPool.Mint event data until consumed by NFPM.Transfer(mint)
+# This is needed because NFPM.Transfer will create NonFungiblePosition entity for a mint (i.e. from = zero address)
+# However, the transfer event doesn't have all the necessary data (e.g. tickLower, tickUpper, etc).
+# This is where CLpoolMintEvent comes in
+# Deleted immediately after consumption
+type CLPoolMintEvent {
+  id: ID! # `${chainId}_${poolAddress}_${txHash}_${logIndex}`
+  chainId: Int! @index
+  pool: String! @index
+  owner: String!
+  tickLower: BigInt! @config(precision: 24)
+  tickUpper: BigInt! @config(precision: 24)
+  liquidity: BigInt! @config(precision: 76)
+  token0: String!
+  token1: String!
+  transactionHash: String! @index
+  logIndex: Int!
+  consumedByTokenId: BigInt @index # Set when consumed (null = unconsumed)
+  createdAt: Timestamp!
+}
+
+# Temporary entity for matching Mint/Burn with Transfer events
+# Only stores mint/burn transfers (isMint || isBurn) to reduce storage
+type PoolTransferInTx {
+  id: ID! # ${chainId}-${txHash}-${poolAddress}-${logIndex}
+  chainId: Int! @index
+  txHash: String! @index
+  pool: String! @index
+  logIndex: Int!
+  blockNumber: BigInt!
+  from: String!
+  to: String!
+  value: BigInt! @config(precision: 76)
+  isMint: Boolean! # from == 0x0
+  isBurn: Boolean! # to == 0x0
+  consumedByLogIndex: Int # logIndex of the Mint/Burn event that consumed this transfer (undefined if unused)
+  timestamp: Timestamp!
+}
+
+# Temporary entity for matching Withdraw events with Transfer events (burns)
+# Similar to PoolTransferInTx but for ALM LP Wrapper
+# Only needed for burns (to = 0x0) since Deposit events emit the correct minted amount
+# Needed for LPWrapper V1 Withdraw event handler fix
+type ALMLPWrapperTransferInTx {
+  id: ID! # ${chainId}-${txHash}-${wrapperAddress}-${logIndex}
+  chainId: Int! @index
+  txHash: String! @index
+  wrapperAddress: String! @index
+  logIndex: Int!
+  blockNumber: BigInt!
+  from: String!
+  to: String!
+  value: BigInt! @config(precision: 76)
+  isBurn: Boolean! # to == 0x0
+  consumedByLogIndex: Int # logIndex of the Withdraw event that consumed this transfer (undefined if unused)
+  timestamp: Timestamp!
+}
