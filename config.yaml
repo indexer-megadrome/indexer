@@ -218,11 +218,13 @@ networks:
       - name: RootCLPoolFactory
         address: []
       - name: CLFactory
-        address: []
+        address:
+          - 0x421Ae744F3243E8130f8f2D07106331C3E7a4aF9
       - name: CLPool
         address: []
       - name: NFPM
-        address: []
+        address:
+          - 0x71c2dE214Bf606037189064338EC35D2B23c512F
       - name: VeNFT
         address:
           - 0xEAF00522B1762384ba5Ac8179BB4cce146102c7C
@@ -248,7 +250,8 @@ networks:
       - name: SuperchainIncentiveVotingReward
         address: []
       - name: NewCLGaugeFactory
-        address: []
+        address:
+          - 0x9Dc4dd2099352660d0D8B52AEcfeAD52Cd3b275B
       - name: CLGauge
         address: []
       - name: Gauge
@@ -274,7 +277,8 @@ networks:
       - name: DynamicSwapFeeModule
         address: []
       - name: CustomSwapFeeModule
-        address: []
+        address:
+          - 0xDFC6F9E94029704f260Eb62B85381B9140A81FB7
       - name: CLPoolLauncher
         address: []
       - name: V2PoolLauncher
